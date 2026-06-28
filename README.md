@@ -1,78 +1,116 @@
-# Furniture Classification
+# 家具识别系统 — 基于深度学习的图像分类
 
-深度学习家具识别系统，面向家居图片的五分类识别任务，覆盖 `bed`、`cabinet`、`chair`、`sofa`、`table` 五类家具。
+基于 PyTorch + MobileNetV2 迁移学习的五类家具自动识别系统。武汉软件工程职业学院《深度学习应用开发》课程设计项目。
 
-本项目包含数据处理、模型训练、测试评估、结果可视化和 Flask 演示页面，适合作为深度学习应用开发课程设计或 AI 应用落地练习项目。
+支持识别：**床 (bed)、柜子 (cabinet)、椅子 (chair)、沙发 (sofa)、桌子 (table)**。
 
-## 项目亮点
-
-- 完成五类家具图像分类模型训练、验证与测试评估。
-- 输出训练曲线、混淆矩阵、类别准确率、预测样例等可视化结果。
-- 测试集准确率：**89.33%**
-- 最佳验证准确率：**89.11%**
-- 支持从产品视角分析模型能力边界，为后续数据优化和场景适配提供依据。
-
-## 结果指标
+## 效果概览
 
 | 指标 | 数值 |
-| --- | --- |
-| Test Accuracy | 89.33% |
-| Test Loss | 0.3876 |
-| Best Val Accuracy | 89.11% |
-| Best Epoch | 11 |
-| Total Epochs | 19 |
-| Parameters | 2,882,309 |
-
-## 类别表现
-
-| 类别 | Precision | Recall | F1-score |
-| --- | ---: | ---: | ---: |
-| bed | 0.8605 | 0.8222 | 0.8409 |
-| cabinet | 0.9667 | 0.9667 | 0.9667 |
-| chair | 0.9348 | 0.9556 | 0.9451 |
-| sofa | 0.8471 | 0.8000 | 0.8229 |
-| table | 0.8557 | 0.9222 | 0.8877 |
+|------|------|
+| 测试集准确率 | 89.33% |
+| 最佳验证准确率 | 90.22% (Epoch 18) |
+| 测试集 Loss | 0.4598 |
+| 模型参数量 | 2,882,309 |
+| 模型体积 | ~35MB |
 
 ## 项目结构
 
-```text
-.
-├── app.py                         # Flask 演示应用
-├── download_dataset.py             # 数据集下载/处理脚本
-├── generate_results.py             # 训练与结果生成脚本
-├── eval_only.py                    # 模型评估脚本
-├── generate_report.py              # 课程报告生成脚本
-├── furniture_classification.ipynb   # Notebook 实验记录
-├── model_metrics.txt               # 模型评估指标
+```
+├── app.py                        # Flask Web 推理服务
+├── download_dataset.py           # 从 HuggingFace 下载 CIFAR-100 并提取 5 类家具
+├── generate_results.py           # 完整训练 + 评估 + 图表生成
+├── eval_only.py                  # 仅评估已有模型
+├── generate_report.py            # 生成课程设计 .docx 报告
+├── furniture_classification.ipynb # Jupyter Notebook 实验记录
+├── requirements.txt              # Python 依赖
+├── model_metrics.txt             # 模型评估指标
 ├── templates/
-│   └── index.html                  # Web 页面模板
-├── test_images/                    # 示例测试图片
-├── training_curves.png             # 训练曲线
-├── confusion_matrix.png            # 混淆矩阵
-├── per_class_accuracy.png          # 类别准确率
-├── class_distribution.png          # 类别分布
-├── sample_images.png               # 数据样例
-└── prediction_samples.png          # 预测样例
+│   └── index.html                # Web 前端页面
+├── training_curves.png           # 训练 Loss/Accuracy 曲线
+├── confusion_matrix.png          # 混淆矩阵
+├── per_class_accuracy.png        # 各类别准确率柱状图
+├── class_distribution.png        # 数据集类别分布
+└── .gitignore
 ```
 
-## 说明
+仓库不含以下内容（需自行生成）：
+- `dataset/` — 数据集（运行 `download_dataset.py` 下载）
+- `*.pth` — 模型权重（运行 `generate_results.py` 训练得到）
 
-为了避免仓库体积过大，以下内容未纳入 GitHub：
+## 快速开始
 
-- 原始数据集 `dataset/`
-- 模型权重 `*.pth`
-- 离线依赖包 `*.whl`
-- Python 缓存、IDE 配置和临时文件
+```bash
+# 1. 安装依赖
+pip install -r requirements.txt
 
-如果需要运行完整训练流程，请按脚本说明重新准备数据集并训练模型。
+# 2. 下载数据集（CIFAR-100 → 5 类家具，3000 张）
+python download_dataset.py
+
+# 3. 训练模型 + 生成评估图表
+python generate_results.py
+
+# 4. 启动 Web 演示
+python app.py
+# 浏览器访问 http://127.0.0.1:5000
+```
+
+## 数据集
+
+从 [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html) 中筛选 5 个家具类别，通过 HuggingFace 镜像下载 Parquet 格式数据，按 70/15/15 划分：
+
+| 数据集 | 样本数 | 用途 |
+|--------|--------|------|
+| 训练集 | 2,100 | 模型参数学习 |
+| 验证集 | 450 | 超参数调优、早停判断 |
+| 测试集 | 450 | 最终泛化能力评估 |
+
+5 个类别各 600 张，分布均匀。
+
+### 数据增强
+
+训练集使用 5 种增强：RandomHorizontalFlip、RandomRotation(±20°)、ColorJitter、RandomAffine、ImageNet 标准化。
+
+## 模型架构
+
+**骨干网络**: MobileNetV2 (ImageNet 预训练权重，全模型微调)
+
+**分类头**:
+```
+Dropout(0.5) → Linear(1280→512) → ReLU → Dropout(0.3) → Linear(512→5)
+```
+
+### 训练配置
+
+| 超参数 | 设定 |
+|--------|------|
+| 优化器 | Adam (lr=0.0005, weight_decay=1e-4) |
+| 学习率调度 | ReduceLROnPlateau (factor=0.5, patience=3) |
+| 早停 | patience=7，监控验证准确率 |
+| 最大 Epoch | 30 |
+| Batch Size | 32 |
+| 输入尺寸 | 224×224 |
+
+## 分类报告
+
+```
+              precision    recall  f1-score   support
+         bed     0.8400    0.9333    0.8842        90
+     cabinet     0.9773    0.9556    0.9663        90
+       chair     0.9149    0.9556    0.9348        90
+        sofa     0.8625    0.7667    0.8118        90
+       table     0.8750    0.8556    0.8652        90
+
+    accuracy                         0.8933       450
+```
+
+- **cabinet** 表现最优 (F1=96.6%)，**sofa** 最易混淆 (F1=81.2%)
+- sofa ↔ bed、sofa ↔ table 为主要误分类对
+
+## Web 演示
+
+Flask + HTML5 前端，支持拖拽上传图片，实时返回 Top-1 预测类别、置信度及各类别概率分布。
 
 ## 技术栈
 
-- Python
-- PyTorch / TorchVision
-- Flask
-- NumPy
-- Matplotlib / Seaborn
-- scikit-learn
-- Pillow
-
+Python · PyTorch · TorchVision · Flask · NumPy · Matplotlib · Seaborn · scikit-learn · Pillow · python-docx
