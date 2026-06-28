@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家具识别系统</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --card-bg: #ffffff;
+    --primary: #4f46e5;
+    --text: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --success: #10b981;
+    --danger: #ef4444;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+    --radius: 12px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+  .container { max-width: 720px; margin: 0 auto; padding: 40px 20px; }
+  .header { text-align: center; margin-bottom: 36px; }
+  .header h1 { font-size: 28px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .header p { color: var(--text-secondary); font-size: 15px; }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    padding: 32px;
+    margin-bottom: 24px;
+  }
+
+  .upload-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .upload-area:hover, .upload-area.dragover {
+    border-color: var(--primary);
+    background: #f8f7ff;
+  }
+  .upload-area input { display: none; }
+  .upload-icon { font-size: 48px; margin-bottom: 12px; }
+  .upload-text { font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+  .upload-hint { font-size: 13px; color: var(--text-secondary); }
+
+  .preview-container { display: none; margin-top: 20px; }
+  .preview-row { display: flex; gap: 24px; align-items: flex-start; }
+  .preview-image {
+    width: 224px; height: 224px; object-fit: cover;
+    border-radius: 8px; border: 1px solid var(--border);
+  }
+  .result-box { flex: 1; }
+
+  .prediction-label {
+    font-size: 22px; font-weight: 700;
+    padding: 12px 20px; border-radius: 8px; margin-bottom: 16px;
+    display: inline-block;
+  }
+  .prediction-label.success { background: #ecfdf5; color: #065f46; }
+  .confidence { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+
+  .prob-list { list-style: none; }
+  .prob-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 0; border-bottom: 1px solid var(--border);
+  }
+  .prob-item:last-child { border-bottom: none; }
+  .prob-name { width: 60px; font-size: 14px; font-weight: 500; }
+  .prob-bar-wrap { flex: 1; height: 22px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+  .prob-bar {
+    height: 100%; width: 100%; border-radius: 6px;
+    background: linear-gradient(90deg, var(--primary), #818cf8);
+    transform-origin: left center;
+    transition: transform .4s ease;
+    will-change: transform;
+  }
+  .prob-value { width: 50px; text-align: right; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+  .error-msg { color: var(--danger); font-size: 14px; margin-top: 12px; display: none; }
+  .model-warning {
+    background: #fef3c7; color: #92400e; padding: 12px 16px;
+    border-radius: 8px; font-size: 14px; margin-bottom: 20px;
+  }
+  .loading { display: none; text-align: center; padding: 16px; color: var(--text-secondary); }
+  .spinner {
+    display: inline-block; width: 24px; height: 24px;
+    border: 3px solid var(--border); border-top-color: var(--primary);
+    border-radius: 50%; animation: spin .6s linear infinite;
+    vertical-align: middle; margin-right: 8px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .footer { text-align: center; margin-top: 32px; color: var(--text-secondary); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>家具识别系统</h1>
+    <p>上传家具图片，AI 自动识别类别</p>
+  </div>
+
+  {% if not model_ready %}
+  <div class="model-warning">
+    模型文件未找到。请先运行 <code>furniture_classification.ipynb</code> 训练模型。
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-icon">&#128230;</div>
+      <div class="upload-text">点击上传或拖拽图片到此处</div>
+      <div class="upload-hint">支持 JPG, PNG, JPEG 格式</div>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="loading" id="loading">
+      <span class="spinner"></span>正在识别...
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="preview-container" id="previewContainer">
+      <div class="preview-row">
+        <img class="preview-image" id="previewImg" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='224' height='224'%3E%3Crect fill='%23f1f5f9' width='224' height='224'/%3E%3C/svg%3E" alt="预览">
+        <div class="result-box">
+          <div class="prediction-label success" id="predictionLabel">--</div>
+          <div class="confidence" id="confidence"></div>
+          <ul class="prob-list" id="probList"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    支持识别: 床、柜子、椅子、沙发、桌子 | 基于 MobileNetV2 深度学习模型
+  </div>
+</div>
+
+<script>
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const loading = document.getElementById('loading');
+const errorMsg = document.getElementById('errorMsg');
+const previewContainer = document.getElementById('previewContainer');
+const previewImg = document.getElementById('previewImg');
+const predictionLabel = document.getElementById('predictionLabel');
+const confidence = document.getElementById('confidence');
+const probList = document.getElementById('probList');
+
+uploadArea.addEventListener('click', () => fileInput.click());
+
+uploadArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  uploadArea.classList.add('dragover');
+});
+uploadArea.addEventListener('dragleave', () => {
+  uploadArea.classList.remove('dragover');
+});
+uploadArea.addEventListener('drop', (e) => {
+  e.preventDefault();
+  uploadArea.classList.remove('dragover');
+  if (e.dataTransfer.files.length) {
+    handleFile(e.dataTransfer.files[0]);
+  }
+});
+
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) {
+    handleFile(fileInput.files[0]);
+  }
+});
+
+function handleFile(file) {
+  if (!file.type.match(/image\/(jpeg|png|jpg)/)) {
+    showError('请上传 JPG 或 PNG 格式的图片');
+    return;
+  }
+
+  // 显示预览
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    previewContainer.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+
+  // 发送请求
+  loading.style.display = 'block';
+  errorMsg.style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  fetch('/predict', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+      loading.style.display = 'none';
+      if (data.error) {
+        showError(data.error);
+        return;
+      }
+      displayResult(data);
+    })
+    .catch(err => {
+      loading.style.display = 'none';
+      showError('请求失败: ' + err.message);
+    });
+}
+
+function displayResult(data) {
+  predictionLabel.textContent = data.prediction;
+  predictionLabel.className = 'prediction-label success';
+  confidence.textContent = '置信度: ' + data.confidence;
+
+  probList.innerHTML = '';
+  data.all_probs.forEach(item => {
+    const li = document.createElement('li');
+    li.className = 'prob-item';
+    li.innerHTML = `
+      <span class="prob-name">${item.class_cn}</span>
+      <div class="prob-bar-wrap">
+        <div class="prob-bar" style="transform: scaleX(${item.probability})"></div>
+      </div>
+      <span class="prob-value">${(item.probability * 100).toFixed(1)}%</span>
+    `;
+    probList.appendChild(li);
+  });
+}
+
+function showError(msg) {
+  errorMsg.textContent = msg;
+  errorMsg.style.display = 'block';
+}
+</script>
+</body>
+</html>

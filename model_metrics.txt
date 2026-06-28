@@ -1,0 +1,41 @@
+Test Accuracy: 0.8933 (89.33%)
+Test Loss: 0.3876
+Best Val Accuracy: 0.8911
+Best Epoch: 11
+Total Epochs Trained: 19
+Total Params: 2,882,309
+Trainable Params: 2,882,309
+
+Final Training History:
+Epoch 1: TrL=0.9650, TrA=0.6133, VaL=0.8042, VaA=0.7311
+Epoch 2: TrL=0.5596, TrA=0.7910, VaL=0.9750, VaA=0.7444
+Epoch 3: TrL=0.4813, TrA=0.8386, VaL=0.5107, VaA=0.8267
+Epoch 4: TrL=0.4111, TrA=0.8514, VaL=0.5635, VaA=0.8133
+Epoch 5: TrL=0.3927, TrA=0.8643, VaL=0.5884, VaA=0.8156
+Epoch 6: TrL=0.3575, TrA=0.8771, VaL=0.6127, VaA=0.8289
+Epoch 7: TrL=0.3177, TrA=0.8914, VaL=0.4594, VaA=0.8378
+Epoch 8: TrL=0.2923, TrA=0.9043, VaL=0.5355, VaA=0.8356
+Epoch 9: TrL=0.2758, TrA=0.9029, VaL=0.4599, VaA=0.8467
+Epoch 10: TrL=0.2737, TrA=0.9062, VaL=0.5953, VaA=0.8533
+Epoch 11: TrL=0.2427, TrA=0.9143, VaL=0.3795, VaA=0.8911
+Epoch 12: TrL=0.2219, TrA=0.9262, VaL=0.5097, VaA=0.8467
+Epoch 13: TrL=0.2005, TrA=0.9348, VaL=0.5133, VaA=0.8533
+Epoch 14: TrL=0.2372, TrA=0.9186, VaL=0.5617, VaA=0.8356
+Epoch 15: TrL=0.1753, TrA=0.9357, VaL=0.4672, VaA=0.8711
+Epoch 16: TrL=0.1264, TrA=0.9538, VaL=0.3853, VaA=0.8822
+Epoch 17: TrL=0.0958, TrA=0.9671, VaL=0.4468, VaA=0.8711
+Epoch 18: TrL=0.0606, TrA=0.9824, VaL=0.4172, VaA=0.8844
+Epoch 19: TrL=0.0630, TrA=0.9786, VaL=0.4268, VaA=0.8889
+
+              precision    recall  f1-score   support
+
+         bed     0.8605    0.8222    0.8409        90
+     cabinet     0.9667    0.9667    0.9667        90
+       chair     0.9348    0.9556    0.9451        90
+        sofa     0.8471    0.8000    0.8229        90
+       table     0.8557    0.9222    0.8877        90
+
+    accuracy                         0.8933       450
+   macro avg     0.8929    0.8933    0.8926       450
+weighted avg     0.8929    0.8933    0.8926       450
+
