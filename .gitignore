@@ -15,7 +15,10 @@ dataset/
 *.pt
 *.onnx
 
+sample_images.png
+prediction_samples.png
+test_images/
+
 .env
 .DS_Store
 Thumbs.db
-
