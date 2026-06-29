@@ -12,7 +12,7 @@
 | 最佳验证准确率 | 90.22% (Epoch 18) |
 | 测试集 Loss | 0.4598 |
 | 模型参数量 | 2,882,309 |
-| 模型体积 | ~35MB |
+| 模型体积 | ~11MB |
 
 ## 项目结构
 
@@ -34,25 +34,33 @@
 └── .gitignore
 ```
 
-仓库不含以下内容（需自行生成）：
-- `dataset/` — 数据集（运行 `download_dataset.py` 下载）
-- `*.pth` — 模型权重（运行 `generate_results.py` 训练得到）
+## 快速体验（推荐）
 
-## 快速开始
+下载预训练模型，跳过训练直接启动 Web 演示：
 
 ```bash
 # 1. 安装依赖
 pip install -r requirements.txt
 
-# 2. 下载数据集（CIFAR-100 → 5 类家具，3000 张）
-python download_dataset.py
+# 2. 从 Release 下载预训练模型
+# 访问 https://github.com/eiei-ee/furniture-classification/releases
+# 下载 furniture_model.pth，放到项目根目录
 
-# 3. 训练模型 + 生成评估图表
-python generate_results.py
+# 3. 下载数据集（仅用于 Web 演示的示例图片）
+python download_dataset.py
 
 # 4. 启动 Web 演示
 python app.py
-# 浏览器访问 http://127.0.0.1:5000
+# 浏览器访问 http://127.0.0.1:5000，上传家具图片即可识别
+```
+
+## 完整训练（从零开始）
+
+```bash
+pip install -r requirements.txt
+python download_dataset.py
+python generate_results.py   # 训练 + 评估 + 图表
+python app.py
 ```
 
 ## 数据集
