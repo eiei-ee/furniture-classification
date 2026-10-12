@@ -9,8 +9,8 @@
 | 指标 | 数值 |
 |------|------|
 | 测试集准确率 | 89.33% |
-| 最佳验证准确率 | 90.22% (Epoch 18) |
-| 测试集 Loss | 0.4598 |
+| 最佳验证准确率 | 89.11% (Epoch 11) |
+| 测试集 Loss | 0.3876 |
 | 模型参数量 | 2,882,309 |
 | 模型体积 | ~11MB |
 
@@ -102,18 +102,21 @@ Dropout(0.5) → Linear(1280→512) → ReLU → Dropout(0.3) → Linear(512→5
 ## 分类报告
 
 ```
-              precision    recall  f1-score   support
-         bed     0.8400    0.9333    0.8842        90
-     cabinet     0.9773    0.9556    0.9663        90
-       chair     0.9149    0.9556    0.9348        90
-        sofa     0.8625    0.7667    0.8118        90
-       table     0.8750    0.8556    0.8652        90
+precision    recall  f1-score   support
+
+         bed     0.8605    0.8222    0.8409        90
+     cabinet     0.9667    0.9667    0.9667        90
+       chair     0.9348    0.9556    0.9451        90
+        sofa     0.8471    0.8000    0.8229        90
+       table     0.8557    0.9222    0.8877        90
 
     accuracy                         0.8933       450
+   macro avg     0.8929    0.8933    0.8926       450
+weighted avg     0.8929    0.8933    0.8926       450
 ```
 
-- **cabinet** 表现最优 (F1=96.6%)，**sofa** 最易混淆 (F1=81.2%)
-- sofa ↔ bed、sofa ↔ table 为主要误分类对
+- 按当前评估记录，**cabinet** 的 F1 为 96.67%，**sofa** 的 F1 为 82.29%。
+- 本表按仓库中的 [model_metrics.txt](model_metrics.txt) 同步；本次整理未重新训练或评估模型，不能据此宣称真实上传图片也有同样准确率。
 
 ## Web 演示
 
@@ -122,3 +125,7 @@ Flask + HTML5 前端，支持拖拽上传图片，实时返回 Top-1 预测类�
 ## 技术栈
 
 Python · PyTorch · TorchVision · Flask · NumPy · Matplotlib · Seaborn · scikit-learn · Pillow · python-docx
+
+## 权利说明
+
+本项目自有代码暂不授予开源许可证，保留权利；CIFAR-100、预训练权重和依赖分别遵循原始条款，详见 [RIGHTS.md](RIGHTS.md)。
